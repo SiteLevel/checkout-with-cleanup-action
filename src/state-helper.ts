@@ -26,6 +26,11 @@ export const SshKeyPath = core.getState('sshKeyPath')
 export const SshKnownHostsPath = core.getState('sshKnownHostsPath')
 
 /**
+ * Whether to perform post-cleanup for the POST action.
+ */
+export const PostCleanup = core.getState('postCleanup') === 'true'
+
+/**
  * Save the repository path so the POST action can retrieve the value.
  */
 export function setRepositoryPath(repositoryPath: string) {
@@ -51,6 +56,13 @@ export function setSshKnownHostsPath(sshKnownHostsPath: string) {
  */
 export function setSafeDirectory() {
   core.saveState('setSafeDirectory', 'true')
+}
+
+/**
+ * Save the post-cleanup setting so the POST action can retrieve the value.
+ */
+export function setPostCleanup(postCleanup: boolean) {
+  core.saveState('postCleanup', postCleanup ? 'true' : 'false')
 }
 
 // Publish a variable so that when the POST action runs, it can determine it should run the cleanup logic.

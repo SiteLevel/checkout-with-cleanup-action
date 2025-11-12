@@ -161,5 +161,15 @@ export async function getInputs(): Promise<IGitSourceSettings> {
   result.githubServerUrl = core.getInput('github-server-url')
   core.debug(`GitHub Host URL = ${result.githubServerUrl}`)
 
+  // Pre-cleanup
+  result.preCleanup =
+    (core.getInput('pre-cleanup') || 'true').toUpperCase() === 'TRUE'
+  core.debug(`pre-cleanup = ${result.preCleanup}`)
+
+  // Post-cleanup
+  result.postCleanup =
+    (core.getInput('post-cleanup') || 'true').toUpperCase() === 'TRUE'
+  core.debug(`post-cleanup = ${result.postCleanup}`)
+
   return result
 }

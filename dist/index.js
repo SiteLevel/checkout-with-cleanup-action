@@ -1,6 +1,120 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 9327:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.cleanupWorkspace = cleanupWorkspace;
+const core = __importStar(__nccwpck_require__(2186));
+const io = __importStar(__nccwpck_require__(7436));
+const fs_1 = __nccwpck_require__(7147);
+const path = __importStar(__nccwpck_require__(1017));
+/**
+ * Helper function to clean up the workspace by removing all files and directories
+ * This is useful for self-hosted runners where workspace state may persist between runs
+ *
+ * Note: This function uses cross-platform Node.js APIs and works on Linux/Unix/Windows runners.
+ */
+function cleanupWorkspace() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const cwd = process.cwd();
+        // List files before cleanup
+        core.info('Files before cleanup:');
+        try {
+            const entries = yield fs_1.promises.readdir('./', { withFileTypes: true });
+            const filteredEntries = entries.filter(entry => entry.name !== '.' && entry.name !== '..');
+            if (filteredEntries.length === 0) {
+                core.info('  (empty)');
+            }
+            else {
+                for (const entry of filteredEntries) {
+                    const type = entry.isDirectory() ? 'd' : entry.isFile() ? 'f' : '?';
+                    core.info(`  [${type}] ${entry.name}`);
+                }
+            }
+        }
+        catch (error) {
+            core.warning(`Failed to list files before cleanup: ${error}`);
+        }
+        // Remove all files and directories (including hidden ones)
+        core.info('Removing files...');
+        try {
+            const entries = yield fs_1.promises.readdir('./', { withFileTypes: true });
+            const filteredEntries = entries.filter(entry => entry.name !== '.' && entry.name !== '..');
+            for (const entry of filteredEntries) {
+                const entryPath = path.join(cwd, entry.name);
+                try {
+                    yield io.rmRF(entryPath);
+                    core.info(`  Removed: ${entry.name}`);
+                }
+                catch (error) {
+                    core.warning(`Failed to remove ${entry.name}: ${error}`);
+                    // Continue to next entry even if this one fails
+                }
+            }
+        }
+        catch (error) {
+            core.warning(`Failed to enumerate files for removal: ${error}`);
+        }
+        // List files after cleanup
+        core.info('Files after cleanup:');
+        try {
+            const entries = yield fs_1.promises.readdir('./', { withFileTypes: true });
+            const filteredEntries = entries.filter(entry => entry.name !== '.' && entry.name !== '..');
+            if (filteredEntries.length === 0) {
+                core.info('  (empty)');
+            }
+            else {
+                for (const entry of filteredEntries) {
+                    const type = entry.isDirectory() ? 'd' : entry.isFile() ? 'f' : '?';
+                    core.info(`  [${type}] ${entry.name}`);
+                }
+            }
+        }
+        catch (error) {
+            core.warning(`Failed to list files after cleanup: ${error}`);
+        }
+    });
+}
+
+
+/***/ }),
+
 /***/ 7219:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -2067,6 +2181,14 @@ function getInputs() {
         // Determine the GitHub URL that the repository is being hosted from
         result.githubServerUrl = core.getInput('github-server-url');
         core.debug(`GitHub Host URL = ${result.githubServerUrl}`);
+        // Pre-cleanup
+        result.preCleanup =
+            (core.getInput('pre-cleanup') || 'true').toUpperCase() === 'TRUE';
+        core.debug(`pre-cleanup = ${result.preCleanup}`);
+        // Post-cleanup
+        result.postCleanup =
+            (core.getInput('post-cleanup') || 'true').toUpperCase() === 'TRUE';
+        core.debug(`post-cleanup = ${result.postCleanup}`);
         return result;
     });
 }
@@ -2118,11 +2240,24 @@ const gitSourceProvider = __importStar(__nccwpck_require__(9210));
 const inputHelper = __importStar(__nccwpck_require__(5480));
 const path = __importStar(__nccwpck_require__(1017));
 const stateHelper = __importStar(__nccwpck_require__(4866));
+const cleanup_helper_1 = __nccwpck_require__(9327);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a;
+        var _a, _b;
         try {
             const sourceSettings = yield inputHelper.getInputs();
+            // Save post-cleanup setting for the POST action
+            stateHelper.setPostCleanup(sourceSettings.postCleanup);
+            // Pre-cleanup: Remove all files from workspace before checkout
+            if (sourceSettings.preCleanup) {
+                core.info('Performing pre-checkout cleanup...');
+                try {
+                    yield (0, cleanup_helper_1.cleanupWorkspace)();
+                }
+                catch (error) {
+                    core.warning(`Pre-cleanup failed: ${(_a = error === null || error === void 0 ? void 0 : error.message) !== null && _a !== void 0 ? _a : error}`);
+                }
+            }
             try {
                 // Register problem matcher
                 coreCommand.issueCommand('add-matcher', {}, path.join(__dirname, 'problem-matcher.json'));
@@ -2136,18 +2271,29 @@ function run() {
             }
         }
         catch (error) {
-            core.setFailed(`${(_a = error === null || error === void 0 ? void 0 : error.message) !== null && _a !== void 0 ? _a : error}`);
+            core.setFailed(`${(_b = error === null || error === void 0 ? void 0 : error.message) !== null && _b !== void 0 ? _b : error}`);
         }
     });
 }
 function cleanup() {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a;
+        var _a, _b;
         try {
+            // Always perform the standard git cleanup (remove credentials, etc.)
             yield gitSourceProvider.cleanup(stateHelper.RepositoryPath);
+            // Additionally perform workspace cleanup if post-cleanup is enabled
+            if (stateHelper.PostCleanup) {
+                core.info('Performing additional post-job workspace cleanup...');
+                try {
+                    yield (0, cleanup_helper_1.cleanupWorkspace)();
+                }
+                catch (error) {
+                    core.warning(`Post-workspace-cleanup failed: ${(_a = error === null || error === void 0 ? void 0 : error.message) !== null && _a !== void 0 ? _a : error}`);
+                }
+            }
         }
         catch (error) {
-            core.warning(`${(_a = error === null || error === void 0 ? void 0 : error.message) !== null && _a !== void 0 ? _a : error}`);
+            core.warning(`${(_b = error === null || error === void 0 ? void 0 : error.message) !== null && _b !== void 0 ? _b : error}`);
         }
     });
 }
@@ -2582,11 +2728,12 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SshKnownHostsPath = exports.SshKeyPath = exports.PostSetSafeDirectory = exports.RepositoryPath = exports.IsPost = void 0;
+exports.PostCleanup = exports.SshKnownHostsPath = exports.SshKeyPath = exports.PostSetSafeDirectory = exports.RepositoryPath = exports.IsPost = void 0;
 exports.setRepositoryPath = setRepositoryPath;
 exports.setSshKeyPath = setSshKeyPath;
 exports.setSshKnownHostsPath = setSshKnownHostsPath;
 exports.setSafeDirectory = setSafeDirectory;
+exports.setPostCleanup = setPostCleanup;
 const core = __importStar(__nccwpck_require__(2186));
 /**
  * Indicates whether the POST action is running
@@ -2608,6 +2755,10 @@ exports.SshKeyPath = core.getState('sshKeyPath');
  * The SSH known hosts path for the POST action. The value is empty during the MAIN action.
  */
 exports.SshKnownHostsPath = core.getState('sshKnownHostsPath');
+/**
+ * Whether to perform post-cleanup for the POST action.
+ */
+exports.PostCleanup = core.getState('postCleanup') === 'true';
 /**
  * Save the repository path so the POST action can retrieve the value.
  */
@@ -2631,6 +2782,12 @@ function setSshKnownHostsPath(sshKnownHostsPath) {
  */
 function setSafeDirectory() {
     core.saveState('setSafeDirectory', 'true');
+}
+/**
+ * Save the post-cleanup setting so the POST action can retrieve the value.
+ */
+function setPostCleanup(postCleanup) {
+    core.saveState('postCleanup', postCleanup ? 'true' : 'false');
 }
 // Publish a variable so that when the POST action runs, it can determine it should run the cleanup logic.
 // This is necessary since we don't have a separate entry point.

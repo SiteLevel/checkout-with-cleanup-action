@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:*)",
+      "Bash(gh pr create:*)",
+      "Bash(npm run format:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
