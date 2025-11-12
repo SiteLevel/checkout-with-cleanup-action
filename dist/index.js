@@ -45,6 +45,9 @@ const exec = __importStar(__nccwpck_require__(1514));
 /**
  * Helper function to clean up the workspace by removing all files and directories
  * This is useful for self-hosted runners where workspace state may persist between runs
+ *
+ * Note: This function uses Unix shell commands (sh, rm) and is intended for Linux/Unix-based runners.
+ * It may not work as expected on Windows runners.
  */
 function cleanupWorkspace() {
     return __awaiter(this, void 0, void 0, function* () {
