@@ -7,6 +7,23 @@ import * as stateHelper from './state-helper'
 import * as exec from '@actions/exec'
 import * as io from '@actions/io'
 
+/**
+ * Helper function to clean up the workspace by removing all files and directories
+ */
+async function cleanupWorkspace(): Promise<void> {
+  // List files before cleanup
+  core.info('Files before cleanup:')
+  await exec.exec('ls', ['-la', './'])
+
+  // Remove all files and directories (including hidden ones)
+  // Using || true to continue even if some files can't be removed
+  await exec.exec('sh', ['-c', 'rm -rf ./* || true; rm -rf ./.??* || true'])
+
+  // List files after cleanup
+  core.info('Files after cleanup:')
+  await exec.exec('ls', ['-la', './'])
+}
+
 async function run(): Promise<void> {
   try {
     const sourceSettings = await inputHelper.getInputs()
@@ -18,24 +35,9 @@ async function run(): Promise<void> {
     if (sourceSettings.preCleanup) {
       core.info('Performing pre-checkout cleanup...')
       try {
-        // List files before cleanup
-        core.info('Files before cleanup:')
-        await exec.exec('ls', ['-la', './'])
-
-        // Remove all files and directories (including hidden ones)
-        // Using || true to continue even if some files can't be removed
-        await exec.exec('sh', [
-          '-c',
-          'rm -rf ./* || true; rm -rf ./.??* || true'
-        ])
-
-        // List files after cleanup
-        core.info('Files after cleanup:')
-        await exec.exec('ls', ['-la', './'])
+        await cleanupWorkspace()
       } catch (error) {
-        core.warning(
-          `Pre-cleanup failed: ${(error as any)?.message ?? error}`
-        )
+        core.warning(`Pre-cleanup failed: ${(error as any)?.message ?? error}`)
       }
     }
 
@@ -61,12 +63,19 @@ async function run(): Promise<void> {
 
 async function cleanup(): Promise<void> {
   try {
-    // Only perform cleanup if post-cleanup is enabled
+    // Always perform the standard git cleanup (remove credentials, etc.)
+    await gitSourceProvider.cleanup(stateHelper.RepositoryPath)
+
+    // Additionally perform workspace cleanup if post-cleanup is enabled
     if (stateHelper.PostCleanup) {
-      core.info('Performing post-job cleanup...')
-      await gitSourceProvider.cleanup(stateHelper.RepositoryPath)
-    } else {
-      core.info('Post-cleanup is disabled, skipping...')
+      core.info('Performing additional post-job workspace cleanup...')
+      try {
+        await cleanupWorkspace()
+      } catch (error) {
+        core.warning(
+          `Post-workspace-cleanup failed: ${(error as any)?.message ?? error}`
+        )
+      }
     }
   } catch (error) {
     core.warning(`${(error as any)?.message ?? error}`)

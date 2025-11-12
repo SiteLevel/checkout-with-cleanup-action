@@ -2127,6 +2127,22 @@ const inputHelper = __importStar(__nccwpck_require__(5480));
 const path = __importStar(__nccwpck_require__(1017));
 const stateHelper = __importStar(__nccwpck_require__(4866));
 const exec = __importStar(__nccwpck_require__(1514));
+/**
+ * Helper function to clean up the workspace by removing all files and directories
+ */
+function cleanupWorkspace() {
+    return __awaiter(this, void 0, void 0, function* () {
+        // List files before cleanup
+        core.info('Files before cleanup:');
+        yield exec.exec('ls', ['-la', './']);
+        // Remove all files and directories (including hidden ones)
+        // Using || true to continue even if some files can't be removed
+        yield exec.exec('sh', ['-c', 'rm -rf ./* || true; rm -rf ./.??* || true']);
+        // List files after cleanup
+        core.info('Files after cleanup:');
+        yield exec.exec('ls', ['-la', './']);
+    });
+}
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, _b;
@@ -2138,18 +2154,7 @@ function run() {
             if (sourceSettings.preCleanup) {
                 core.info('Performing pre-checkout cleanup...');
                 try {
-                    // List files before cleanup
-                    core.info('Files before cleanup:');
-                    yield exec.exec('ls', ['-la', './']);
-                    // Remove all files and directories (including hidden ones)
-                    // Using || true to continue even if some files can't be removed
-                    yield exec.exec('sh', [
-                        '-c',
-                        'rm -rf ./* || true; rm -rf ./.??* || true'
-                    ]);
-                    // List files after cleanup
-                    core.info('Files after cleanup:');
-                    yield exec.exec('ls', ['-la', './']);
+                    yield cleanupWorkspace();
                 }
                 catch (error) {
                     core.warning(`Pre-cleanup failed: ${(_a = error === null || error === void 0 ? void 0 : error.message) !== null && _a !== void 0 ? _a : error}`);
@@ -2174,19 +2179,23 @@ function run() {
 }
 function cleanup() {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a;
+        var _a, _b;
         try {
-            // Only perform cleanup if post-cleanup is enabled
+            // Always perform the standard git cleanup (remove credentials, etc.)
+            yield gitSourceProvider.cleanup(stateHelper.RepositoryPath);
+            // Additionally perform workspace cleanup if post-cleanup is enabled
             if (stateHelper.PostCleanup) {
-                core.info('Performing post-job cleanup...');
-                yield gitSourceProvider.cleanup(stateHelper.RepositoryPath);
-            }
-            else {
-                core.info('Post-cleanup is disabled, skipping...');
+                core.info('Performing additional post-job workspace cleanup...');
+                try {
+                    yield cleanupWorkspace();
+                }
+                catch (error) {
+                    core.warning(`Post-workspace-cleanup failed: ${(_a = error === null || error === void 0 ? void 0 : error.message) !== null && _a !== void 0 ? _a : error}`);
+                }
             }
         }
         catch (error) {
-            core.warning(`${(_a = error === null || error === void 0 ? void 0 : error.message) !== null && _a !== void 0 ? _a : error}`);
+            core.warning(`${(_b = error === null || error === void 0 ? void 0 : error.message) !== null && _b !== void 0 ? _b : error}`);
         }
     });
 }

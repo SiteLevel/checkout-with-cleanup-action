@@ -3,3 +3,5 @@ _temp/
 lib/
 node_modules/
 .vscode/
+
+.claude/settings.local.json
