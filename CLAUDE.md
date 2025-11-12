@@ -59,6 +59,25 @@ The existing post-cleanup functionality (which removes git credentials) can now 
 - **Error handling**: Cleanup commands use `|| true` to continue even if some files can't be removed
 - **State preservation**: Cleanup configuration is saved to state for the post-job phase
 
+## Development Workflow
+
+Before committing any changes, you must run the following commands:
+
+```bash
+# Format the code with prettier
+npm run format
+
+# Build the distribution bundle
+npm run build
+```
+
+These commands ensure:
+- Code is formatted consistently according to project standards
+- The `dist/index.js` bundle is up-to-date with source changes
+- The action will work correctly when deployed
+
+**Important**: The `dist/` directory must be committed along with source changes, as GitHub Actions runs the bundled code from `dist/index.js`.
+
 ## Usage
 
 ```yaml
