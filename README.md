@@ -1,4 +1,4 @@
-[![Build and Test](https://github.com/actions/checkout/actions/workflows/test.yml/badge.svg)](https://github.com/actions/checkout/actions/workflows/test.yml)
+[![Build and Test](https://github.com/SiteLevel/checkout-with-cleanup-action/actions/workflows/test.yml/badge.svg)](https://github.com/SiteLevel/checkout-with-cleanup-action/actions/workflows/test.yml)
 
 # Checkout with Cleanup Action
 
@@ -14,8 +14,6 @@ These features are particularly useful for:
 - Self-hosted runners where workspace state may persist between runs
 - Preventing file conflicts from previous workflow executions
 - Ensuring consistent, clean build environments
-
-**Note:** The cleanup functionality uses Unix shell commands (`sh`, `rm`) and is intended for Linux/Unix-based runners (including most self-hosted runners). It may not work as expected on Windows runners.
 
 All other functionality remains identical to the official actions/checkout.
 
@@ -48,7 +46,7 @@ When Git 2.18 or higher is not in your PATH, falls back to the REST API to downl
 
 ### Note
 
-Thank you for your interest in this GitHub action, however, right now we are not taking contributions. 
+Thank you for your interest in this GitHub action, however, right now we are not taking contributions.
 
 We continue to focus our resources on strategic areas that help our customers be successful while making developers' lives easier. While GitHub Actions remains a key part of this vision, we are allocating resources towards other areas of Actions and are not taking contributions to this repository at this time. The GitHub public roadmap is the best place to follow along for any updates on features we’re working on and what stage they’re in.
 
@@ -66,13 +64,13 @@ You are welcome to still raise bugs in this repo.
 
 # What's new
 
-Please refer to the [release page](https://github.com/actions/checkout/releases/latest) for the latest release notes.
+Please refer to the [release page](https://github.com/SiteLevel/checkout-with-cleanup-action/releases/latest) for the latest release notes.
 
 # Usage
 
 <!-- start usage -->
 ```yaml
-- uses: actions/checkout@v5
+- uses: SiteLevel/checkout-with-cleanup-action@v1
   with:
     # Repository name with owner. For example, actions/checkout
     # Default: ${{ github.repository }}
@@ -182,14 +180,12 @@ Please refer to the [release page](https://github.com/actions/checkout/releases/
     github-server-url: ''
 
     # Whether to clean up the workspace before checkout by removing all files
-    # (including hidden files). Useful for self-hosted runners. Note: Uses Unix shell
-    # commands (sh, rm) and is intended for Linux/Unix-based runners.
+    # (including hidden files). Useful for self-hosted runners.
     # Default: true
     pre-cleanup: ''
 
     # Whether to perform post-job cleanup (remove credentials and cleanup repository).
-    # Set to false to skip post-job cleanup. Note: Uses Unix shell commands (sh, rm)
-    # and is intended for Linux/Unix-based runners.
+    # Set to false to skip post-job cleanup.
     # Default: true
     post-cleanup: ''
 ```
@@ -223,7 +219,7 @@ Please refer to the [release page](https://github.com/actions/checkout/releases/
 ## Fetch only the root files
 
 ```yaml
-- uses: actions/checkout@v5
+- uses: SiteLevel/checkout-with-cleanup-action@v1
   with:
     sparse-checkout: .
 ```
@@ -231,7 +227,7 @@ Please refer to the [release page](https://github.com/actions/checkout/releases/
 ## Fetch only the root files and `.github` and `src` folder
 
 ```yaml
-- uses: actions/checkout@v5
+- uses: SiteLevel/checkout-with-cleanup-action@v1
   with:
     sparse-checkout: |
       .github
@@ -241,7 +237,7 @@ Please refer to the [release page](https://github.com/actions/checkout/releases/
 ## Fetch only a single file
 
 ```yaml
-- uses: actions/checkout@v5
+- uses: SiteLevel/checkout-with-cleanup-action@v1
   with:
     sparse-checkout: |
       README.md
@@ -251,7 +247,7 @@ Please refer to the [release page](https://github.com/actions/checkout/releases/
 ## Fetch all history for all tags and branches
 
 ```yaml
-- uses: actions/checkout@v5
+- uses: SiteLevel/checkout-with-cleanup-action@v1
   with:
     fetch-depth: 0
 ```
@@ -259,7 +255,7 @@ Please refer to the [release page](https://github.com/actions/checkout/releases/
 ## Checkout a different branch
 
 ```yaml
-- uses: actions/checkout@v5
+- uses: SiteLevel/checkout-with-cleanup-action@v1
   with:
     ref: my-branch
 ```
@@ -267,7 +263,7 @@ Please refer to the [release page](https://github.com/actions/checkout/releases/
 ## Checkout HEAD^
 
 ```yaml
-- uses: actions/checkout@v5
+- uses: SiteLevel/checkout-with-cleanup-action@v1
   with:
     fetch-depth: 2
 - run: git checkout HEAD^
@@ -277,12 +273,12 @@ Please refer to the [release page](https://github.com/actions/checkout/releases/
 
 ```yaml
 - name: Checkout
-  uses: actions/checkout@v5
+  uses: SiteLevel/checkout-with-cleanup-action@v1
   with:
     path: main
 
 - name: Checkout tools repo
-  uses: actions/checkout@v5
+  uses: SiteLevel/checkout-with-cleanup-action@v1
   with:
     repository: my-org/my-tools
     path: my-tools
@@ -293,10 +289,10 @@ Please refer to the [release page](https://github.com/actions/checkout/releases/
 
 ```yaml
 - name: Checkout
-  uses: actions/checkout@v5
+  uses: SiteLevel/checkout-with-cleanup-action@v1
 
 - name: Checkout tools repo
-  uses: actions/checkout@v5
+  uses: SiteLevel/checkout-with-cleanup-action@v1
   with:
     repository: my-org/my-tools
     path: my-tools
@@ -307,12 +303,12 @@ Please refer to the [release page](https://github.com/actions/checkout/releases/
 
 ```yaml
 - name: Checkout
-  uses: actions/checkout@v5
+  uses: SiteLevel/checkout-with-cleanup-action@v1
   with:
     path: main
 
 - name: Checkout private tools
-  uses: actions/checkout@v5
+  uses: SiteLevel/checkout-with-cleanup-action@v1
   with:
     repository: my-org/my-private-tools
     token: ${{ secrets.GH_PAT }} # `GH_PAT` is a secret that contains your PAT
@@ -325,7 +321,7 @@ Please refer to the [release page](https://github.com/actions/checkout/releases/
 ## Checkout pull request HEAD commit instead of merge commit
 
 ```yaml
-- uses: actions/checkout@v5
+- uses: SiteLevel/checkout-with-cleanup-action@v1
   with:
     ref: ${{ github.event.pull_request.head.sha }}
 ```
@@ -341,7 +337,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: SiteLevel/checkout-with-cleanup-action@v1
 ```
 
 ## Push a commit using the built-in token
@@ -352,7 +348,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: SiteLevel/checkout-with-cleanup-action@v1
       - run: |
           date > generated.txt
           # Note: the following account information will not work on GHES
@@ -374,7 +370,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: SiteLevel/checkout-with-cleanup-action@v1
         with:
           ref: ${{ github.head_ref }}
       - run: |

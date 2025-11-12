@@ -41,25 +41,74 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.cleanupWorkspace = cleanupWorkspace;
 const core = __importStar(__nccwpck_require__(2186));
-const exec = __importStar(__nccwpck_require__(1514));
+const io = __importStar(__nccwpck_require__(7436));
+const fs_1 = __nccwpck_require__(7147);
+const path = __importStar(__nccwpck_require__(1017));
 /**
  * Helper function to clean up the workspace by removing all files and directories
  * This is useful for self-hosted runners where workspace state may persist between runs
  *
- * Note: This function uses Unix shell commands (sh, rm) and is intended for Linux/Unix-based runners.
- * It may not work as expected on Windows runners.
+ * Note: This function uses cross-platform Node.js APIs and works on Linux/Unix/Windows runners.
  */
 function cleanupWorkspace() {
     return __awaiter(this, void 0, void 0, function* () {
+        const cwd = process.cwd();
         // List files before cleanup
         core.info('Files before cleanup:');
-        yield exec.exec('ls', ['-la', './']);
+        try {
+            const entries = yield fs_1.promises.readdir('./', { withFileTypes: true });
+            const filteredEntries = entries.filter(entry => entry.name !== '.' && entry.name !== '..');
+            if (filteredEntries.length === 0) {
+                core.info('  (empty)');
+            }
+            else {
+                for (const entry of filteredEntries) {
+                    const type = entry.isDirectory() ? 'd' : entry.isFile() ? 'f' : '?';
+                    core.info(`  [${type}] ${entry.name}`);
+                }
+            }
+        }
+        catch (error) {
+            core.warning(`Failed to list files before cleanup: ${error}`);
+        }
         // Remove all files and directories (including hidden ones)
-        // Using || true to continue even if some files can't be removed
-        yield exec.exec('sh', ['-c', 'rm -rf ./* || true; rm -rf ./.??* || true']);
+        core.info('Removing files...');
+        try {
+            const entries = yield fs_1.promises.readdir('./', { withFileTypes: true });
+            const filteredEntries = entries.filter(entry => entry.name !== '.' && entry.name !== '..');
+            for (const entry of filteredEntries) {
+                const entryPath = path.join(cwd, entry.name);
+                try {
+                    yield io.rmRF(entryPath);
+                    core.info(`  Removed: ${entry.name}`);
+                }
+                catch (error) {
+                    core.warning(`Failed to remove ${entry.name}: ${error}`);
+                    // Continue to next entry even if this one fails
+                }
+            }
+        }
+        catch (error) {
+            core.warning(`Failed to enumerate files for removal: ${error}`);
+        }
         // List files after cleanup
         core.info('Files after cleanup:');
-        yield exec.exec('ls', ['-la', './']);
+        try {
+            const entries = yield fs_1.promises.readdir('./', { withFileTypes: true });
+            const filteredEntries = entries.filter(entry => entry.name !== '.' && entry.name !== '..');
+            if (filteredEntries.length === 0) {
+                core.info('  (empty)');
+            }
+            else {
+                for (const entry of filteredEntries) {
+                    const type = entry.isDirectory() ? 'd' : entry.isFile() ? 'f' : '?';
+                    core.info(`  [${type}] ${entry.name}`);
+                }
+            }
+        }
+        catch (error) {
+            core.warning(`Failed to list files after cleanup: ${error}`);
+        }
     });
 }
 

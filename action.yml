@@ -99,10 +99,10 @@ inputs:
     description: The base URL for the GitHub instance that you are trying to clone from, will use environment defaults to fetch from the same instance that the workflow is running from unless specified. Example URLs are https://github.com or https://my-ghes-server.example.com
     required: false
   pre-cleanup:
-    description: 'Whether to clean up the workspace before checkout by removing all files (including hidden files). Useful for self-hosted runners. Note: Uses Unix shell commands (sh, rm) and is intended for Linux/Unix-based runners.'
+    description: 'Whether to clean up the workspace before checkout by removing all files (including hidden files). Useful for self-hosted runners.'
     default: true
   post-cleanup:
-    description: 'Whether to perform post-job cleanup (remove credentials and cleanup repository). Set to false to skip post-job cleanup. Note: Uses Unix shell commands (sh, rm) and is intended for Linux/Unix-based runners.'
+    description: 'Whether to perform post-job cleanup (remove credentials and cleanup repository). Set to false to skip post-job cleanup.'
     default: true
 outputs:
   ref:

@@ -17,24 +17,16 @@ Two new input parameters have been added to `action.yml`:
 
 The pre-cleanup step runs before the repository checkout and performs the following:
 
-```bash
-# List current files
-ls -la ./
-
-# Remove all files (including hidden ones)
-rm -rf ./* || true
-rm -rf ./.??* || true
-
-# Verify cleanup
-ls -la ./
-```
+1. Lists all files in the workspace (including hidden files)
+2. Removes all files and directories (except `.` and `..`)
+3. Lists remaining files to verify cleanup
 
 This ensures a clean workspace before checkout, which is useful when:
 - Reusing self-hosted runners
 - Preventing file conflicts from previous runs
 - Ensuring consistent build environments
 
-**Important Note:** The cleanup functionality uses Unix shell commands (`sh`, `rm`) and is intended for Linux/Unix-based runners (including most self-hosted runners). It may not work as expected on Windows runners.
+The cleanup functionality uses cross-platform Node.js APIs (`fs.promises`, `@actions/io`) and works on Linux/Unix/Windows runners.
 
 ### 3. Post-Cleanup Configuration
 
@@ -49,14 +41,15 @@ The existing post-cleanup functionality (which removes git credentials) can now 
 3. **src/git-source-settings.ts** - Extended the settings interface to include cleanup flags
 4. **src/state-helper.ts** - Added state management for cleanup configuration
 5. **src/main.ts** - Implemented pre-cleanup logic before checkout
-6. **README.md** - Updated documentation with fork information and new parameters
+6. **src/cleanup-helper.ts** - Cross-platform cleanup implementation using Node.js APIs
+7. **README.md** - Updated documentation with fork information and new parameters
 
 ### Design Decisions
 
 - **Default to `true`**: Both cleanup options default to enabled for maximum cleanliness
 - **Configurable**: Users can disable either cleanup step if needed for their workflow
-- **Shell commands**: Pre-cleanup uses shell commands for maximum compatibility
-- **Error handling**: Cleanup commands use `|| true` to continue even if some files can't be removed
+- **Cross-platform**: Pre-cleanup uses Node.js APIs (`fs.promises`, `@actions/io`) for cross-platform compatibility
+- **Error handling**: Cleanup operations are wrapped in try/catch blocks to continue even if some files can't be removed
 - **State preservation**: Cleanup configuration is saved to state for the post-job phase
 
 ## Development Workflow
@@ -98,6 +91,7 @@ These commands ensure:
 2. Test with `pre-cleanup: false` to ensure it's properly skipped
 3. Test with `post-cleanup: false` to ensure credentials persist when needed
 4. Test in various workspace states (empty, dirty, with hidden files)
+5. Test on Windows runners to verify cross-platform compatibility
 
 ## Maintenance Notes
 
