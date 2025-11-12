@@ -118,4 +118,14 @@ export interface IGitSourceSettings {
    * User override on the GitHub Server/Host URL that hosts the repository to be cloned
    */
   githubServerUrl: string | undefined
+
+  /**
+   * Indicates whether to perform pre-checkout cleanup (remove all files from workspace)
+   */
+  preCleanup: boolean
+
+  /**
+   * Indicates whether to perform post-job cleanup (remove credentials and cleanup repository)
+   */
+  postCleanup: boolean
 }

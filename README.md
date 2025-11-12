@@ -1,5 +1,24 @@
 [![Build and Test](https://github.com/actions/checkout/actions/workflows/test.yml/badge.svg)](https://github.com/actions/checkout/actions/workflows/test.yml)
 
+# Checkout with Cleanup Action
+
+> **Note**: This is a fork of [actions/checkout](https://github.com/actions/checkout) with additional pre and post cleanup functionality. It's designed to be a drop-in replacement for the official checkout action with optional workspace cleanup capabilities.
+
+## What's different from actions/checkout
+
+This fork adds two new input parameters:
+- **`pre-cleanup`** (default: `true`) - Removes all files from the workspace before checkout, ensuring a clean environment
+- **`post-cleanup`** (default: `true`) - Performs post-job cleanup to remove credentials and temporary files
+
+These features are particularly useful for:
+- Self-hosted runners where workspace state may persist between runs
+- Preventing file conflicts from previous workflow executions
+- Ensuring consistent, clean build environments
+
+All other functionality remains identical to the official actions/checkout.
+
+---
+
 # Checkout v6-beta
 
 ## What's new
@@ -159,6 +178,16 @@ Please refer to the [release page](https://github.com/actions/checkout/releases/
     # running from unless specified. Example URLs are https://github.com or
     # https://my-ghes-server.example.com
     github-server-url: ''
+
+    # Whether to clean up the workspace before checkout by removing all files
+    # (including hidden files). Useful for self-hosted runners.
+    # Default: true
+    pre-cleanup: ''
+
+    # Whether to perform post-job cleanup (remove credentials and cleanup repository).
+    # Set to false to skip post-job cleanup.
+    # Default: true
+    post-cleanup: ''
 ```
 <!-- end usage -->
 

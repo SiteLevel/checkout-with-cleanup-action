@@ -2067,6 +2067,14 @@ function getInputs() {
         // Determine the GitHub URL that the repository is being hosted from
         result.githubServerUrl = core.getInput('github-server-url');
         core.debug(`GitHub Host URL = ${result.githubServerUrl}`);
+        // Pre-cleanup
+        result.preCleanup =
+            (core.getInput('pre-cleanup') || 'true').toUpperCase() === 'TRUE';
+        core.debug(`pre-cleanup = ${result.preCleanup}`);
+        // Post-cleanup
+        result.postCleanup =
+            (core.getInput('post-cleanup') || 'true').toUpperCase() === 'TRUE';
+        core.debug(`post-cleanup = ${result.postCleanup}`);
         return result;
     });
 }
@@ -2118,11 +2126,35 @@ const gitSourceProvider = __importStar(__nccwpck_require__(9210));
 const inputHelper = __importStar(__nccwpck_require__(5480));
 const path = __importStar(__nccwpck_require__(1017));
 const stateHelper = __importStar(__nccwpck_require__(4866));
+const exec = __importStar(__nccwpck_require__(1514));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a;
+        var _a, _b;
         try {
             const sourceSettings = yield inputHelper.getInputs();
+            // Save post-cleanup setting for the POST action
+            stateHelper.setPostCleanup(sourceSettings.postCleanup);
+            // Pre-cleanup: Remove all files from workspace before checkout
+            if (sourceSettings.preCleanup) {
+                core.info('Performing pre-checkout cleanup...');
+                try {
+                    // List files before cleanup
+                    core.info('Files before cleanup:');
+                    yield exec.exec('ls', ['-la', './']);
+                    // Remove all files and directories (including hidden ones)
+                    // Using || true to continue even if some files can't be removed
+                    yield exec.exec('sh', [
+                        '-c',
+                        'rm -rf ./* || true; rm -rf ./.??* || true'
+                    ]);
+                    // List files after cleanup
+                    core.info('Files after cleanup:');
+                    yield exec.exec('ls', ['-la', './']);
+                }
+                catch (error) {
+                    core.warning(`Pre-cleanup failed: ${(_a = error === null || error === void 0 ? void 0 : error.message) !== null && _a !== void 0 ? _a : error}`);
+                }
+            }
             try {
                 // Register problem matcher
                 coreCommand.issueCommand('add-matcher', {}, path.join(__dirname, 'problem-matcher.json'));
@@ -2136,7 +2168,7 @@ function run() {
             }
         }
         catch (error) {
-            core.setFailed(`${(_a = error === null || error === void 0 ? void 0 : error.message) !== null && _a !== void 0 ? _a : error}`);
+            core.setFailed(`${(_b = error === null || error === void 0 ? void 0 : error.message) !== null && _b !== void 0 ? _b : error}`);
         }
     });
 }
@@ -2144,7 +2176,14 @@ function cleanup() {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
         try {
-            yield gitSourceProvider.cleanup(stateHelper.RepositoryPath);
+            // Only perform cleanup if post-cleanup is enabled
+            if (stateHelper.PostCleanup) {
+                core.info('Performing post-job cleanup...');
+                yield gitSourceProvider.cleanup(stateHelper.RepositoryPath);
+            }
+            else {
+                core.info('Post-cleanup is disabled, skipping...');
+            }
         }
         catch (error) {
             core.warning(`${(_a = error === null || error === void 0 ? void 0 : error.message) !== null && _a !== void 0 ? _a : error}`);
@@ -2582,11 +2621,12 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SshKnownHostsPath = exports.SshKeyPath = exports.PostSetSafeDirectory = exports.RepositoryPath = exports.IsPost = void 0;
+exports.PostCleanup = exports.SshKnownHostsPath = exports.SshKeyPath = exports.PostSetSafeDirectory = exports.RepositoryPath = exports.IsPost = void 0;
 exports.setRepositoryPath = setRepositoryPath;
 exports.setSshKeyPath = setSshKeyPath;
 exports.setSshKnownHostsPath = setSshKnownHostsPath;
 exports.setSafeDirectory = setSafeDirectory;
+exports.setPostCleanup = setPostCleanup;
 const core = __importStar(__nccwpck_require__(2186));
 /**
  * Indicates whether the POST action is running
@@ -2608,6 +2648,10 @@ exports.SshKeyPath = core.getState('sshKeyPath');
  * The SSH known hosts path for the POST action. The value is empty during the MAIN action.
  */
 exports.SshKnownHostsPath = core.getState('sshKnownHostsPath');
+/**
+ * Whether to perform post-cleanup for the POST action.
+ */
+exports.PostCleanup = core.getState('postCleanup') === 'true';
 /**
  * Save the repository path so the POST action can retrieve the value.
  */
@@ -2631,6 +2675,12 @@ function setSshKnownHostsPath(sshKnownHostsPath) {
  */
 function setSafeDirectory() {
     core.saveState('setSafeDirectory', 'true');
+}
+/**
+ * Save the post-cleanup setting so the POST action can retrieve the value.
+ */
+function setPostCleanup(postCleanup) {
+    core.saveState('postCleanup', postCleanup ? 'true' : 'false');
 }
 // Publish a variable so that when the POST action runs, it can determine it should run the cleanup logic.
 // This is necessary since we don't have a separate entry point.
