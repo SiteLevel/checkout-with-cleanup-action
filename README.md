@@ -15,6 +15,8 @@ These features are particularly useful for:
 - Preventing file conflicts from previous workflow executions
 - Ensuring consistent, clean build environments
 
+**Note:** The cleanup functionality uses Unix shell commands (`sh`, `rm`) and is intended for Linux/Unix-based runners (including most self-hosted runners). It may not work as expected on Windows runners.
+
 All other functionality remains identical to the official actions/checkout.
 
 ---
@@ -180,12 +182,14 @@ Please refer to the [release page](https://github.com/actions/checkout/releases/
     github-server-url: ''
 
     # Whether to clean up the workspace before checkout by removing all files
-    # (including hidden files). Useful for self-hosted runners.
+    # (including hidden files). Useful for self-hosted runners. Note: Uses Unix shell
+    # commands (sh, rm) and is intended for Linux/Unix-based runners.
     # Default: true
     pre-cleanup: ''
 
     # Whether to perform post-job cleanup (remove credentials and cleanup repository).
-    # Set to false to skip post-job cleanup.
+    # Set to false to skip post-job cleanup. Note: Uses Unix shell commands (sh, rm)
+    # and is intended for Linux/Unix-based runners.
     # Default: true
     post-cleanup: ''
 ```

@@ -34,6 +34,8 @@ This ensures a clean workspace before checkout, which is useful when:
 - Preventing file conflicts from previous runs
 - Ensuring consistent build environments
 
+**Important Note:** The cleanup functionality uses Unix shell commands (`sh`, `rm`) and is intended for Linux/Unix-based runners (including most self-hosted runners). It may not work as expected on Windows runners.
+
 ### 3. Post-Cleanup Configuration
 
 The existing post-cleanup functionality (which removes git credentials) can now be disabled via the `post-cleanup` input parameter.

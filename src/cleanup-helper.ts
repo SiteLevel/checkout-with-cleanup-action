@@ -4,6 +4,9 @@ import * as exec from '@actions/exec'
 /**
  * Helper function to clean up the workspace by removing all files and directories
  * This is useful for self-hosted runners where workspace state may persist between runs
+ *
+ * Note: This function uses Unix shell commands (sh, rm) and is intended for Linux/Unix-based runners.
+ * It may not work as expected on Windows runners.
  */
 export async function cleanupWorkspace(): Promise<void> {
   // List files before cleanup
