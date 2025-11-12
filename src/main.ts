@@ -4,25 +4,7 @@ import * as gitSourceProvider from './git-source-provider'
 import * as inputHelper from './input-helper'
 import * as path from 'path'
 import * as stateHelper from './state-helper'
-import * as exec from '@actions/exec'
-import * as io from '@actions/io'
-
-/**
- * Helper function to clean up the workspace by removing all files and directories
- */
-async function cleanupWorkspace(): Promise<void> {
-  // List files before cleanup
-  core.info('Files before cleanup:')
-  await exec.exec('ls', ['-la', './'])
-
-  // Remove all files and directories (including hidden ones)
-  // Using || true to continue even if some files can't be removed
-  await exec.exec('sh', ['-c', 'rm -rf ./* || true; rm -rf ./.??* || true'])
-
-  // List files after cleanup
-  core.info('Files after cleanup:')
-  await exec.exec('ls', ['-la', './'])
-}
+import {cleanupWorkspace} from './cleanup-helper'
 
 async function run(): Promise<void> {
   try {
